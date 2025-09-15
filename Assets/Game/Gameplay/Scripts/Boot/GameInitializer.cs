@@ -1,4 +1,5 @@
 using Game.Gameplay.Systems.Grid;
+using Game.Gameplay.Systems.Unit;
 using Scellecs.Morpeh;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -23,6 +24,7 @@ namespace Game.Gameplay.Boot
 
             var systemGroup = _world.CreateSystemsGroup();
 
+            systemGroup.AddInitializer(new UnitInitializeSystem(_gameTilemap));
             systemGroup.AddInitializer(new TileHightlightSystem(_gameTilemap));
             systemGroup.AddSystem(new CursorGridSystem(_gameTilemap));
             
