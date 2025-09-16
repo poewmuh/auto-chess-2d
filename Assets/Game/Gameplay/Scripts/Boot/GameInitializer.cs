@@ -24,9 +24,13 @@ namespace Game.Gameplay.Boot
 
             var systemGroup = _world.CreateSystemsGroup();
 
-            systemGroup.AddInitializer(new UnitInitializeSystem(_gameTilemap));
-            systemGroup.AddInitializer(new TileHightlightSystem(_gameTilemap));
+            systemGroup.AddInitializer(new GridInitilizer(_gameTilemap));
+            systemGroup.AddInitializer(new UnitInitializer(_gameTilemap));
+            systemGroup.AddInitializer(new CursorHightlightSystem());
+
+            systemGroup.AddSystem(new GridHighligtApplySystem(_gameTilemap));
             systemGroup.AddSystem(new CursorGridSystem(_gameTilemap));
+            systemGroup.AddSystem(new SelectionSystem());
             
             _world.AddSystemsGroup(order: 0, systemGroup);
         }

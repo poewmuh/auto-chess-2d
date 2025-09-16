@@ -8,14 +8,14 @@ namespace Game.Gameplay.Systems.Unit
     [Il2CppSetOption(Option.NullChecks, false)]
     [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
-    public sealed class UnitInitializeSystem : IInitializer
+    public sealed class UnitInitializer : IInitializer
     {
         private readonly Tilemap _gameMap;
         private Filter _units;
 
         public World World { get; set; }
 
-        public UnitInitializeSystem(Tilemap gameMap)
+        public UnitInitializer(Tilemap gameMap)
         {
             _gameMap = gameMap;
         }
