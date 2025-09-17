@@ -10,6 +10,6 @@ namespace Game.Gameplay.Components.Grid
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
     public struct TileComponent : IComponent
     {
-        public Vector3Int tilePos;
+        public Vector3Int position;
     }
 }

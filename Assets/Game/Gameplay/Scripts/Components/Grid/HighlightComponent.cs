@@ -1,5 +1,6 @@
 using Scellecs.Morpeh;
 using Unity.IL2CPP.CompilerServices;
+using UnityEngine;
 
 namespace Game.Gameplay.Components.Grid
 {
@@ -9,6 +10,7 @@ namespace Game.Gameplay.Components.Grid
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
     public struct HighlightComponent : IComponent
     {
+        public Vector3Int position;
         public HighlightType type;
     }
 

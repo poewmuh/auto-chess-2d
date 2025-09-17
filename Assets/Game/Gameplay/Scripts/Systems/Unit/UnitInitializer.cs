@@ -1,7 +1,6 @@
 using Game.Gameplay.Components;
 using Scellecs.Morpeh;
 using Unity.IL2CPP.CompilerServices;
-using UnityEngine.Tilemaps;
 
 namespace Game.Gameplay.Systems.Unit
 {
@@ -10,27 +9,32 @@ namespace Game.Gameplay.Systems.Unit
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
     public sealed class UnitInitializer : IInitializer
     {
-        private readonly Tilemap _gameMap;
+        private readonly GridContext _gridContext;
+        
         private Filter _units;
+        private Stash<PositionComponent> _positionStash;
+        private Stash<TransformComponent> _transformStash;
 
         public World World { get; set; }
-
-        public UnitInitializer(Tilemap gameMap)
+        
+        public UnitInitializer(GridContext gridContext)
         {
-            _gameMap = gameMap;
+            _gridContext = gridContext;
         }
 
         public void OnAwake()
         {
             _units = World.Filter.With<PositionComponent>().With<TransformComponent>().Build();
+            _positionStash = World.GetStash<PositionComponent>();
+            _transformStash = World.GetStash<TransformComponent>();
             
             foreach (var entity in _units)
             {
-                ref var posComp = ref entity.GetComponent<PositionComponent>();
-                ref var tComp = ref entity.GetComponent<TransformComponent>();
+                ref var positionComp = ref _positionStash.Get(entity);
+                ref var transformComp = ref _transformStash.Get(entity);
                 
-                posComp.position = _gameMap.WorldToCell(tComp.transform.position);
-                tComp.transform.position = _gameMap.GetCellCenterWorld(posComp.position);
+                positionComp.position = _gridContext.WorldToCell(transformComp.GetPosition());
+                transformComp.transform.position = _gridContext.GetCellCenterWorld(positionComp.position);
             }
         }
 

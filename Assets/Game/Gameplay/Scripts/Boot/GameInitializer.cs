@@ -2,7 +2,6 @@ using Game.Gameplay.Systems.Grid;
 using Game.Gameplay.Systems.Unit;
 using Scellecs.Morpeh;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 using VContainer;
 
 namespace Game.Gameplay.Boot
@@ -10,13 +9,7 @@ namespace Game.Gameplay.Boot
     public class GameInitializer : MonoBehaviour
     {
         private World _world;
-        private Tilemap _gameTilemap;
-
-        [Inject]
-        public void Construct(Tilemap gameTilemap)
-        {
-            _gameTilemap = gameTilemap;
-        }
+        [Inject] private GridContext _gridContext;
 
         private void Start()
         {
@@ -24,12 +17,12 @@ namespace Game.Gameplay.Boot
 
             var systemGroup = _world.CreateSystemsGroup();
 
-            systemGroup.AddInitializer(new GridInitilizer(_gameTilemap));
-            systemGroup.AddInitializer(new UnitInitializer(_gameTilemap));
-            systemGroup.AddInitializer(new CursorHightlightSystem());
+            systemGroup.AddInitializer(new GridInitializer(_gridContext));
+            systemGroup.AddInitializer(new UnitInitializer(_gridContext));
+            systemGroup.AddInitializer(new CursorHighlightSystem(_gridContext));
 
-            systemGroup.AddSystem(new GridHighligtApplySystem(_gameTilemap));
-            systemGroup.AddSystem(new CursorGridSystem(_gameTilemap));
+            systemGroup.AddSystem(new GridHighlightApplySystem(_gridContext));
+            systemGroup.AddSystem(new CursorGridSystem(_gridContext));
             systemGroup.AddSystem(new SelectionSystem());
             
             _world.AddSystemsGroup(order: 0, systemGroup);

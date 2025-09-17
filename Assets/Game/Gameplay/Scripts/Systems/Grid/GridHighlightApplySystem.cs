@@ -3,25 +3,24 @@ using Game.Gameplay.Helpers;
 using Scellecs.Morpeh;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace Game.Gameplay.Systems.Grid
 {
     [Il2CppSetOption(Option.NullChecks, false)]
     [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
-    public sealed class GridHighligtApplySystem : ISystem
+    public sealed class GridHighlightApplySystem : ISystem
     {
         public World World { get; set; }
 
-        private Tilemap _gameMap;
+        private readonly GridContext _gridContext;
         private Stash<HighlightComponent> _highlightStash;
         private Stash<TileComponent> _tileStash;
         private Filter _tileFilter;
 
-        public GridHighligtApplySystem(Tilemap tilemap)
+        public GridHighlightApplySystem(GridContext gridContext)
         {
-            _gameMap = tilemap;
+            _gridContext = gridContext;
         }
 
         public void OnAwake()
@@ -35,16 +34,16 @@ namespace Game.Gameplay.Systems.Grid
         {
             foreach (var tileEntity in _tileFilter)
             {
-                var tileComponent = _tileStash.Get(tileEntity);
+                ref var tileComponent = ref _tileStash.Get(tileEntity);
                 var color = ColorsHelper.DEFAULT_TILE_COLOR;
                 if (_highlightStash.Has(tileEntity))
                 {
-                    var highlightComponent = _highlightStash.Get(tileEntity);
+                    ref var highlightComponent = ref _highlightStash.Get(tileEntity);
                     color = GetColorByComponent(highlightComponent);
                 }
                 
 
-                _gameMap.SetColor(tileComponent.tilePos, color);
+                _gridContext.SetTileColor(tileComponent.position, color);
             }
         }
 

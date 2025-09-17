@@ -11,6 +11,7 @@ namespace Game.Gameplay.Boot
         
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.Register<GridContext>(Lifetime.Singleton);
             builder.RegisterInstance(_gameTileMap);
         }
     }

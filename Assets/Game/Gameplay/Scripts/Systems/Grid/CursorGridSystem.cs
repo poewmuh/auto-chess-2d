@@ -2,7 +2,6 @@ using Game.Gameplay.Events;
 using Scellecs.Morpeh;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 namespace Game.Gameplay.Systems.Grid
 {
@@ -14,17 +13,17 @@ namespace Game.Gameplay.Systems.Grid
         private Event<CursorMapTileEvent> _cursorMapTileEvent;
         private Event<CursorMapClickEvent> _cursorMapClickEvent;
         
+        private readonly GridContext _gridContext;
+        
         private Camera _camera;
         private Vector3Int _lastGridPos;
         private bool _isOnValidPos;
         
-        private readonly Tilemap _gameTilemap;
-        
         public World World { get; set; }
 
-        public CursorGridSystem(Tilemap gameGrid)
+        public CursorGridSystem(GridContext gridContext)
         {
-            _gameTilemap = gameGrid;
+            _gridContext =  gridContext;
         }
 
         public void OnAwake()
@@ -39,7 +38,7 @@ namespace Game.Gameplay.Systems.Grid
         {
             var mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, -_camera.transform.position.z);
             var mouseWorldPos = _camera.ScreenToWorldPoint(mousePos);
-            var cellPos = _gameTilemap.WorldToCell(mouseWorldPos);
+            var cellPos = _gridContext.WorldToCell(mouseWorldPos);
 
             ProcessCursorOnMap(cellPos);
             ProcessCursorClick(cellPos);
@@ -49,7 +48,7 @@ namespace Game.Gameplay.Systems.Grid
         {
             if (_lastGridPos == cellPos) return;
             _lastGridPos = cellPos;
-            if (!_gameTilemap.HasTile(cellPos))
+            if (!_gridContext.HasTile(cellPos))
             {
                 _isOnValidPos = false;
                 _cursorMapTileEvent.NextFrame(new CursorMapTileEvent
