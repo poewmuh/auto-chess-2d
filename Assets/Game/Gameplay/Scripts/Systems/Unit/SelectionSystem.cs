@@ -31,28 +31,23 @@ namespace Game.Gameplay.Systems.Unit
 
         private void OnMapClick(FastList<CursorMapClickEvent> triggers)
         {
-            foreach (var t in triggers)
+            var lastTrigger = triggers[triggers.length - 1];
+            foreach (var entity in _units)
             {
-                foreach (var entity in _units)
-                {
-                    ref var posComp = ref _positionStash.Get(entity);
+                ref var posComp = ref _positionStash.Get(entity);
 
-                    if (posComp.position == t.mapPosition)
-                    {
-                        _selectedStash.Add(entity);
-                    }
-                    else
-                    {
-                        _selectedStash.Remove(entity);
-                    }
+                if (posComp.position == lastTrigger.mapPosition)
+                {
+                    _selectedStash.Add(entity);
+                }
+                else
+                {
+                    _selectedStash.Remove(entity);
                 }
             }
         }
 
-        public void OnUpdate(float deltaTime)
-        {
-
-        }
+        public void OnUpdate(float deltaTime) { }
 
         public void Dispose()
         {

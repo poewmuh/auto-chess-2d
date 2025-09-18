@@ -1,6 +1,9 @@
+using System;
 using Game.Gameplay.Components.Grid;
+using Game.Gameplay.Events;
 using Game.Gameplay.Helpers;
 using Scellecs.Morpeh;
+using Scellecs.Morpeh.Collections;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
 
@@ -11,12 +14,11 @@ namespace Game.Gameplay.Systems.Grid
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
     public sealed class GridHighlightApplySystem : ISystem
     {
+        private IDisposable _subscribtion;
         public World World { get; set; }
 
         private readonly GridContext _gridContext;
         private Stash<HighlightComponent> _highlightStash;
-        private Stash<TileComponent> _tileStash;
-        private Filter _tileFilter;
 
         public GridHighlightApplySystem(GridContext gridContext)
         {
@@ -26,15 +28,16 @@ namespace Game.Gameplay.Systems.Grid
         public void OnAwake()
         {
             _highlightStash = World.GetStash<HighlightComponent>();
-            _tileStash = World.GetStash<TileComponent>();
-            _tileFilter = World.Filter.With<TileComponent>().Build();
+            
+            var highlightEvent = World.GetEvent<HighlightEvent>();
+            _subscribtion = highlightEvent.Subscribe(OnHighlightChange);
         }
 
-        public void OnUpdate(float deltaTime)
+        private void OnHighlightChange(FastList<HighlightEvent> triggers)
         {
-            foreach (var tileEntity in _tileFilter)
+            foreach (var t in triggers)
             {
-                ref var tileComponent = ref _tileStash.Get(tileEntity);
+                _gridContext.TryGetTileEntity(t.mapPosition, out var tileEntity);
                 var color = ColorsHelper.DEFAULT_TILE_COLOR;
                 if (_highlightStash.Has(tileEntity))
                 {
@@ -43,7 +46,7 @@ namespace Game.Gameplay.Systems.Grid
                 }
                 
 
-                _gridContext.SetTileColor(tileComponent.position, color);
+                _gridContext.SetTileColor(t.mapPosition, color);
             }
         }
 
@@ -59,10 +62,12 @@ namespace Game.Gameplay.Systems.Grid
             
             return ColorsHelper.DEFAULT_TILE_COLOR;
         }
+        
+        public void OnUpdate(float deltaTime) { }
 
         public void Dispose()
         {
-
+            _subscribtion.Dispose();
         }
     }
 }

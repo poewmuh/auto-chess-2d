@@ -5,7 +5,6 @@ using Scellecs.Morpeh;
 using Scellecs.Morpeh.Collections;
 using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
-using VContainer;
 
 namespace Game.Gameplay.Systems.Grid
 {
@@ -14,10 +13,11 @@ namespace Game.Gameplay.Systems.Grid
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
     public sealed class CursorHighlightSystem : IInitializer
     {
+        private Event<HighlightEvent> _highlightEvent;
+        
         private readonly GridContext _gridContext;
         
         private IDisposable _subscription;
-        
         private Stash<HighlightComponent> _highlightStash;
         private Vector3Int? _lastHighlightedPos;
 
@@ -33,28 +33,43 @@ namespace Game.Gameplay.Systems.Grid
         public void OnAwake()
         {
             var cursorMapTileEvent = World.GetEvent<CursorMapTileEvent>();
+            _highlightEvent = World.GetEvent<HighlightEvent>();
             _subscription = cursorMapTileEvent.Subscribe(OnCursorTileChanged);
             _highlightStash = World.GetStash<HighlightComponent>();
         }
 
         private void OnCursorTileChanged(FastList<CursorMapTileEvent> triggers)
         {
-            var last = triggers[triggers.length - 1];
-            var newPos = last.mapPosition;
+            var lastTrigger = triggers[triggers.length - 1];
+            var newPos = lastTrigger.mapPosition;
 
+            RemovePrevHighlight();
+            
+            if (!lastTrigger.isValidPosition)
+                return;
+
+            AddNewHighlight(newPos);
+        }
+
+        private void RemovePrevHighlight()
+        {
             if (_lastHighlightedPos.HasValue)
             {
                 var prevPos = _lastHighlightedPos.Value;
                 if (_gridContext.TryGetTileEntity(prevPos, out var prevEntity) && _highlightStash.Has(prevEntity))
                 {
                     _highlightStash.Remove(prevEntity);
+                    _highlightEvent.NextFrame(new HighlightEvent
+                    {
+                        mapPosition = prevPos
+                    });
                 }
                 _lastHighlightedPos = null;
             }
-            
-            if (!last.isValidPosition)
-                return;
-            
+        }
+
+        private void AddNewHighlight(Vector3Int newPos)
+        {
             if (_gridContext.TryGetTileEntity(newPos, out var tileEntity))
             {
                 if (!_highlightStash.Has(tileEntity))
@@ -64,6 +79,11 @@ namespace Game.Gameplay.Systems.Grid
                         position = newPos,
                         type = HighlightType.Cursor
                     };
+                    
+                    _highlightEvent.NextFrame(new HighlightEvent
+                    {
+                        mapPosition = newPos
+                    });
                 }
 
                 _lastHighlightedPos = newPos;
