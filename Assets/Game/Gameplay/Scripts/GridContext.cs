@@ -26,6 +26,13 @@ namespace Game.Gameplay
         {
             return _gameTilemap.WorldToCell(worldPosition);
         }
+
+        public Vector3 GetWorldCellCenterPosition(Vector3 worldPosition)
+        {
+            var cellPos = _gameTilemap.WorldToCell(worldPosition);
+            var centerCellWorld = _gameTilemap.GetCellCenterWorld(cellPos);
+            return centerCellWorld;
+        }
         
         public Vector3 GetCellCenterWorld(Vector3Int cellPosition)
         {

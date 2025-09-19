@@ -1,4 +1,4 @@
-using Game.Gameplay.Components;
+using Game.Gameplay.Components.Unit;
 using Scellecs.Morpeh;
 using Unity.IL2CPP.CompilerServices;
 
@@ -13,7 +13,6 @@ namespace Game.Gameplay.Systems.Unit
         
         private Filter _units;
         private Stash<PositionComponent> _positionStash;
-        private Stash<TransformComponent> _transformStash;
 
         public World World { get; set; }
         
@@ -24,17 +23,15 @@ namespace Game.Gameplay.Systems.Unit
 
         public void OnAwake()
         {
-            _units = World.Filter.With<PositionComponent>().With<TransformComponent>().Build();
+            _units = World.Filter.With<PositionComponent>().Build();
             _positionStash = World.GetStash<PositionComponent>();
-            _transformStash = World.GetStash<TransformComponent>();
             
             foreach (var entity in _units)
             {
                 ref var positionComp = ref _positionStash.Get(entity);
-                ref var transformComp = ref _transformStash.Get(entity);
-                
-                positionComp.position = _gridContext.WorldToCell(transformComp.GetPosition());
-                transformComp.transform.position = _gridContext.GetCellCenterWorld(positionComp.position);
+
+                var centerCell = _gridContext.GetWorldCellCenterPosition(positionComp.GetWorldPosition());
+                positionComp.SetWorldPosition(centerCell, _gridContext);
             }
         }
 

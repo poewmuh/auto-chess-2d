@@ -1,17 +1,15 @@
 using Scellecs.Morpeh;
-using Unity.IL2CPP.CompilerServices;
 using UnityEngine;
+using Unity.IL2CPP.CompilerServices;
 
-namespace Game.Gameplay.Components
+namespace Game.Gameplay.Components.Unit
 {
     [System.Serializable]
     [Il2CppSetOption(Option.NullChecks, false)]
     [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
-    public struct TransformComponent : IComponent
+    public struct MovableComponent : IComponent
     {
-        public Transform transform;
-        
-        public Vector3 GetPosition() => transform.position;
+        public Vector3Int movePosition;
     }
 }

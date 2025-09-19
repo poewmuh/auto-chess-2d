@@ -20,10 +20,12 @@ namespace Game.Gameplay.Boot
             systemGroup.AddInitializer(new GridInitializer(_gridContext));
             systemGroup.AddInitializer(new UnitInitializer(_gridContext));
             systemGroup.AddInitializer(new CursorHighlightSystem(_gridContext));
-
+            
+            systemGroup.AddSystem(new SelectionHighlightSystem(_gridContext));
             systemGroup.AddSystem(new GridHighlightApplySystem(_gridContext));
             systemGroup.AddSystem(new CursorGridSystem(_gridContext));
             systemGroup.AddSystem(new SelectionSystem());
+            systemGroup.AddSystem(new MovableSystem(_gridContext));
             
             _world.AddSystemsGroup(order: 0, systemGroup);
         }
