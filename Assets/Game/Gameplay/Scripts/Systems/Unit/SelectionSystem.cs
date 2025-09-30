@@ -4,6 +4,7 @@ using Game.Gameplay.Events;
 using Scellecs.Morpeh;
 using Scellecs.Morpeh.Collections;
 using Unity.IL2CPP.CompilerServices;
+using UnityEngine;
 
 namespace Game.Gameplay.Systems.Unit
 {
@@ -15,6 +16,7 @@ namespace Game.Gameplay.Systems.Unit
         private Entity _selectedUnit;
         private Stash<MovableComponent> _movableStash;
         private Stash<PositionComponent> _positionStash;
+        private Stash<EnemyMarker> _enemyStash;
         private Stash<SelectedMarker> _selectedStash;
         private Filter _units;
         private IDisposable _subscription;
@@ -29,6 +31,7 @@ namespace Game.Gameplay.Systems.Unit
             _movableStash = World.GetStash<MovableComponent>();
             _positionStash = World.GetStash<PositionComponent>();
             _selectedStash = World.GetStash<SelectedMarker>();
+            _enemyStash = World.GetStash<EnemyMarker>();
             _units = World.Filter.With<PositionComponent>().Build();
         }
 
@@ -43,8 +46,12 @@ namespace Game.Gameplay.Systems.Unit
                 {
                     if (!_selectedStash.Has(entity))
                     {
-                        _selectedUnit = entity;
-                        _selectedStash.Add(entity);
+                        if (!_enemyStash.Has(entity))
+                        {
+                            _selectedUnit = entity;
+                            _selectedStash.Add(entity);
+                        }
+                        
                         return;
                     }
                     else
@@ -54,10 +61,15 @@ namespace Game.Gameplay.Systems.Unit
                 }
             }
 
+            AddToMovable(lastTrigger.mapPosition);
+        }
+
+        private void AddToMovable(Vector3Int mapPosition)
+        {
             ref var selectedUnitPos = ref _positionStash.Get(_selectedUnit);
-            if (_selectedStash.Has(_selectedUnit) && lastTrigger.mapPosition != selectedUnitPos.position)
+            if (_selectedStash.Has(_selectedUnit) && mapPosition != selectedUnitPos.position)
             {
-                _movableStash.Add(_selectedUnit) = new MovableComponent() { movePosition = lastTrigger.mapPosition};
+                _movableStash.Add(_selectedUnit) = new MovableComponent() { movePosition = mapPosition};
                 _selectedStash.Remove(_selectedUnit);
             }
         }
