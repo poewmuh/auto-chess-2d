@@ -12,7 +12,9 @@ namespace Game.Gameplay.Components
         public GameState gameState;
     }
     
-    public enum GameState {
+    public enum GameState 
+    {
+        Initialization = 0,
         Preparation,
         Battle
     }

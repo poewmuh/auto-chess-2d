@@ -1,3 +1,4 @@
+using Game.Gameplay.Systems;
 using Game.Gameplay.Systems.Grid;
 using Game.Gameplay.Systems.Unit;
 using Scellecs.Morpeh;
@@ -17,6 +18,7 @@ namespace Game.Gameplay.Boot
 
             var systemGroup = _world.CreateSystemsGroup();
 
+            systemGroup.AddInitializer(new GameStateInitializer());
             systemGroup.AddInitializer(new GridInitializer(_gridContext));
             systemGroup.AddInitializer(new UnitInitializer(_gridContext));
             systemGroup.AddInitializer(new CursorHighlightSystem(_gridContext));

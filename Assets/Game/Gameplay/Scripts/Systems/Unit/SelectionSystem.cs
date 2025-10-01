@@ -1,4 +1,5 @@
 using System;
+using Game.Gameplay.Components;
 using Game.Gameplay.Components.Unit;
 using Game.Gameplay.Events;
 using Scellecs.Morpeh;
@@ -33,45 +34,59 @@ namespace Game.Gameplay.Systems.Unit
             _selectedStash = World.GetStash<SelectedMarker>();
             _enemyStash = World.GetStash<EnemyMarker>();
             _units = World.Filter.With<PositionComponent>().Build();
+            
+        }
+
+        private bool IsBattleState()
+        {
+            var startBattleFilter = World.Filter.With<GameStateComponent>().Build();
+            var startBattleStash = World.GetStash<GameStateComponent>();
+            ref var stateComponent = ref startBattleStash.Get(startBattleFilter.First());
+            return stateComponent.gameState == GameState.Battle;
         }
 
         private void OnMapClick(FastList<CursorMapClickEvent> triggers)
         {
+            if (IsBattleState()) return;
             var lastTrigger = triggers[triggers.length - 1];
-            foreach (var entity in _units)
+
+            if (_selectedStash.IsEmpty())
             {
-                ref var posComp = ref _positionStash.Get(entity);
-
-                if (posComp.position == lastTrigger.mapPosition)
-                {
-                    if (!_selectedStash.Has(entity))
-                    {
-                        if (!_enemyStash.Has(entity))
-                        {
-                            _selectedUnit = entity;
-                            _selectedStash.Add(entity);
-                        }
-                        
-                        return;
-                    }
-                    else
-                    {
-                        _selectedStash.Remove(entity);
-                    }
-                }
+                TrySelectUnit(lastTrigger.mapPosition);
             }
-
-            AddToMovable(lastTrigger.mapPosition);
+            else
+            {
+                TryAddToMovable(lastTrigger.mapPosition);
+            }
         }
 
-        private void AddToMovable(Vector3Int mapPosition)
+        private void TrySelectUnit(Vector3Int mapPosition)
         {
-            ref var selectedUnitPos = ref _positionStash.Get(_selectedUnit);
-            if (_selectedStash.Has(_selectedUnit) && mapPosition != selectedUnitPos.position)
+            foreach (var entity in _units)
             {
-                _movableStash.Add(_selectedUnit) = new MovableComponent() { movePosition = mapPosition};
-                _selectedStash.Remove(_selectedUnit);
+                if (_enemyStash.Has(entity)) continue;
+                ref var positionComponent = ref _positionStash.Get(entity);
+                if (positionComponent.position != mapPosition) continue;
+                
+                _selectedUnit = entity;
+                _selectedStash.Add(entity);
+                return;
             }
+        }
+
+        private void TryAddToMovable(Vector3Int mapPosition)
+        {
+            foreach (var entity in _units)
+            {
+                ref var positionComponent = ref _positionStash.Get(entity);
+                if (positionComponent.position != mapPosition) continue;
+                
+                _selectedStash.RemoveAll();
+                return;
+            }
+            
+            _movableStash.Add(_selectedUnit) = new MovableComponent() { movePosition = mapPosition};
+            _selectedStash.Remove(_selectedUnit);
         }
 
         public void OnUpdate(float deltaTime) { }
