@@ -1,4 +1,5 @@
 using Game.Gameplay.Components;
+using Game.Gameplay.Events;
 using Scellecs.Morpeh;
 using Unity.IL2CPP.CompilerServices;
 using Unity.VisualScripting;
@@ -10,6 +11,8 @@ namespace Game.Gameplay.Systems
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
     public sealed class GameStateInitializer : IInitializer
     {
+        private Event<GameStateEvent> _gameStateEvent;
+        
         private StartBattleComponent _startBattleComponent;
         private Stash<GameStateComponent> _gameStateStash;
         private Entity _gameStateEntity;
@@ -22,6 +25,9 @@ namespace Game.Gameplay.Systems
             _gameStateEntity = World.CreateEntity();
             ref var gameStateComp = ref _gameStateStash.Add(_gameStateEntity);
             gameStateComp.gameState = GameState.Preparation;
+            
+            _gameStateEvent = World.GetEvent<GameStateEvent>();
+            _gameStateEvent.NextFrame(new GameStateEvent(GameState.Preparation));
 
             var startBattleStash = World.GetStash<StartBattleComponent>();
             var filter = World.Filter.With<StartBattleComponent>().Build();
@@ -33,6 +39,7 @@ namespace Game.Gameplay.Systems
         {
             ref var gameStateComponent = ref _gameStateStash.Get(_gameStateEntity);
             gameStateComponent.gameState = GameState.Battle;
+            _gameStateEvent.NextFrame(new GameStateEvent(GameState.Battle));
         }
 
         public void Dispose()

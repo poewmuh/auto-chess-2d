@@ -20,34 +20,44 @@ namespace Game.Gameplay.Systems.Unit
         private Stash<EnemyMarker> _enemyStash;
         private Stash<SelectedMarker> _selectedStash;
         private Filter _units;
-        private IDisposable _subscription;
+        private IDisposable _mapClickSubscribe;
+        private IDisposable _gameStateSubscribe;
+        
         
         public World World { get; set; }
 
         public void OnAwake()
         {
-            var cursorClickEvent = World.GetEvent<CursorMapClickEvent>();
-            _subscription = cursorClickEvent.Subscribe(OnMapClick);
-
             _movableStash = World.GetStash<MovableComponent>();
             _positionStash = World.GetStash<PositionComponent>();
             _selectedStash = World.GetStash<SelectedMarker>();
             _enemyStash = World.GetStash<EnemyMarker>();
             _units = World.Filter.With<PositionComponent>().Build();
             
+            var gameStateEvent = World.GetEvent<GameStateEvent>();
+            _gameStateSubscribe = gameStateEvent.Subscribe(OnGameStateChange);
+
         }
 
-        private bool IsBattleState()
+        private void OnGameStateChange(FastList<GameStateEvent> triggers)
         {
-            var startBattleFilter = World.Filter.With<GameStateComponent>().Build();
-            var startBattleStash = World.GetStash<GameStateComponent>();
-            ref var stateComponent = ref startBattleStash.Get(startBattleFilter.First());
-            return stateComponent.gameState == GameState.Battle;
+            var lastTrigger = triggers[triggers.length - 1];
+            switch (lastTrigger.newState)
+            {
+                case GameState.Battle:
+                    _mapClickSubscribe.Dispose();
+                    break;
+                case GameState.Preparation:
+                {
+                    var cursorClickEvent = World.GetEvent<CursorMapClickEvent>();
+                    _mapClickSubscribe = cursorClickEvent.Subscribe(OnMapClick);
+                    break;
+                }
+            }
         }
 
         private void OnMapClick(FastList<CursorMapClickEvent> triggers)
         {
-            if (IsBattleState()) return;
             var lastTrigger = triggers[triggers.length - 1];
 
             if (_selectedStash.IsEmpty())
@@ -93,7 +103,8 @@ namespace Game.Gameplay.Systems.Unit
 
         public void Dispose()
         {
-            _subscription.Dispose();
+            _mapClickSubscribe.Dispose();
+            _gameStateSubscribe.Dispose();
         }
     }
 }
