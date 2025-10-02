@@ -1,4 +1,5 @@
 using Game.Gameplay.Systems;
+using Game.Gameplay.Systems.Battle;
 using Game.Gameplay.Systems.Grid;
 using Game.Gameplay.Systems.Unit;
 using Scellecs.Morpeh;
@@ -16,20 +17,25 @@ namespace Game.Gameplay.Boot
         {
             _world = World.Default;
 
-            var systemGroup = _world.CreateSystemsGroup();
+            var preparationGroup = _world.CreateSystemsGroup();
 
-            systemGroup.AddInitializer(new GameStateInitializer());
-            systemGroup.AddInitializer(new GridInitializer(_gridContext));
-            systemGroup.AddInitializer(new UnitInitializer(_gridContext));
-            systemGroup.AddInitializer(new CursorHighlightSystem(_gridContext));
+            preparationGroup.AddInitializer(new GameStateInitializer());
+            preparationGroup.AddInitializer(new GridInitializer(_gridContext));
+            preparationGroup.AddInitializer(new UnitInitializer(_gridContext));
+            preparationGroup.AddInitializer(new CursorHighlightSystem(_gridContext));
             
-            systemGroup.AddSystem(new SelectionHighlightSystem(_gridContext));
-            systemGroup.AddSystem(new GridHighlightApplySystem(_gridContext));
-            systemGroup.AddSystem(new CursorGridSystem(_gridContext));
-            systemGroup.AddSystem(new SelectionSystem());
-            systemGroup.AddSystem(new MovableSystem(_gridContext));
+            preparationGroup.AddSystem(new SelectionHighlightSystem(_gridContext));
+            preparationGroup.AddSystem(new GridHighlightApplySystem(_gridContext));
+            preparationGroup.AddSystem(new CursorGridSystem(_gridContext));
+            preparationGroup.AddSystem(new SelectionSystem());
+            preparationGroup.AddSystem(new MovableSystem(_gridContext));
             
-            _world.AddSystemsGroup(order: 0, systemGroup);
+            var battleGroup = _world.CreateSystemsGroup();
+            battleGroup.AddSystem(new FindTargetSystem());
+            battleGroup.AddSystem(new BattleMoveSystem(_gridContext));
+            
+            _world.AddSystemsGroup(order: 0, preparationGroup);
+            _world.AddSystemsGroup(order: 1, battleGroup);
         }
     }
 }

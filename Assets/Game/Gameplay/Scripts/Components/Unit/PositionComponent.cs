@@ -20,5 +20,17 @@ namespace Game.Gameplay.Components.Unit
             transform.position = worldPosition;
             position = gridContext.WorldToCell(worldPosition);
         }
+
+        public void MoveCellPositionX(int newX, GridContext gridContext)
+        {
+            position.x += newX;
+            transform.position = gridContext.GetCellCenterWorld(position);
+        }
+        
+        public void MoveCellPositionY(int newY, GridContext gridContext)
+        {
+            position.y += newY;
+            transform.position = gridContext.GetCellCenterWorld(position);
+        }
     }
 }
